@@ -4,7 +4,9 @@ import { defineConfig, devices } from "@playwright/test";
 // Run locally with E2E_BASE_URL=https://<your install> npm run test:e2e (creates and deletes a test account).
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 60_000,
+  timeout: 90_000,
+  // CI machines are slow: give each check (page change, text appearing) up to 15 s, not 5 s.
+  expect: { timeout: 15_000 },
   retries: 0,
   reporter: [["list"]],
   use: {

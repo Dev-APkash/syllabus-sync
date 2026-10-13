@@ -3,7 +3,9 @@
 name: CI
 
 on:
+  # Pushes to the main branches only; other branches (e.g. Dependabot's) are tested once, by their pull request.
   push:
+    branches: [main, selfhost]
   pull_request:
 
 # Least privilege: this workflow can read the code and nothing else.

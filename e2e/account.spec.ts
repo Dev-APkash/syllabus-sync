@@ -18,9 +18,10 @@ test("sign up, sign out, log in, use settings, delete the account", async ({ pag
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { name: "No courses yet" })).toBeVisible();
 
-  // Sign out, then log back in.
+  // Sign out, wait until the app has finished signing out and moved to the login page itself
+  // (jumping there straight away races the sign-out), then log back in.
   await page.getByRole("button", { name: "Sign out" }).click();
-  await page.goto("/auth/login");
+  await expect(page).toHaveURL(/\/auth\/login$/);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Log in" }).click();
