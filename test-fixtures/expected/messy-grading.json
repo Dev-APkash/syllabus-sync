@@ -1,0 +1,115 @@
+{
+  "course": {
+    "code": "CHEM 1100",
+    "name": "General Chemistry I",
+    "instructor": "Dr. Samir Haddad",
+    "term": "Winter 2027"
+  },
+  "assessments": [
+    {
+      "title": "Quiz 1",
+      "kind": "quiz",
+      "due_date": "2027-01-22",
+      "due_time": "",
+      "weight_percent": 3.2,
+      "date_text": "January 22",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "Best 4 of 5 count"
+    },
+    {
+      "title": "Quiz 2",
+      "kind": "quiz",
+      "due_date": "2027-02-05",
+      "due_time": "",
+      "weight_percent": 3.2,
+      "date_text": "February 5",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "Best 4 of 5 count"
+    },
+    {
+      "title": "Quiz 3",
+      "kind": "quiz",
+      "due_date": "2027-02-26",
+      "due_time": "",
+      "weight_percent": 3.2,
+      "date_text": "February 26",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "Best 4 of 5 count"
+    },
+    {
+      "title": "Quiz 4",
+      "kind": "quiz",
+      "due_date": "2027-03-12",
+      "due_time": "",
+      "weight_percent": 3.2,
+      "date_text": "March 12",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "Best 4 of 5 count"
+    },
+    {
+      "title": "Quiz 5",
+      "kind": "quiz",
+      "due_date": "2027-03-26",
+      "due_time": "",
+      "weight_percent": 3.2,
+      "date_text": "March 26, 2027",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "Best 4 of 5 count"
+    },
+    {
+      "title": "Lab Report 1",
+      "kind": "lab",
+      "due_date": "2027-02-02",
+      "due_time": "",
+      "weight_percent": 10,
+      "date_text": "February 2, 2027",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "L01 Feb 2, L02 Feb 4"
+    },
+    {
+      "title": "Lab Report 2",
+      "kind": "lab",
+      "due_date": "2027-03-16",
+      "due_time": "",
+      "weight_percent": 10,
+      "date_text": "March 16, 2027",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "L01 Mar 16, L02 Mar 18"
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "midterm",
+      "due_date": "2027-02-25",
+      "due_time": "19:00",
+      "weight_percent": 24,
+      "date_text": "Thursday, February 25, 2027 at 7:00 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Final Exam",
+      "kind": "final_exam",
+      "due_date": "",
+      "due_time": "",
+      "weight_percent": 40,
+      "date_text": "During the April exam period; date TBA",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    }
+  ],
+  "grading_notes": [
+    "Only the best 4 of 5 quizzes count."
+  ],
+  "warnings": [
+    "Lab report dates depend on your lab section."
+  ]
+}

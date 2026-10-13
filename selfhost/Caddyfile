@@ -1,0 +1,23 @@
+# One address for everything. Only Supabase's three APIs the app uses are passed through;
+# everything else (Studio, the database, other Supabase services) is unreachable from outside.
+{
+	servers {
+		# Tailscale Serve sits in front and handles HTTPS. Trust its "this was https://, for this
+		# address" headers when they come from a private address (the VM itself / Docker).
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	@supabase_api path /auth/v1/* /rest/v1/* /storage/v1/*
+
+	handle @supabase_api {
+		reverse_proxy api-gw:8000
+	}
+
+	handle {
+		reverse_proxy app:3000
+	}
+
+	header -server
+}

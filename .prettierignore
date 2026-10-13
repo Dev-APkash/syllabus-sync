@@ -1,0 +1,9 @@
+# Generated or hand-maintained files Prettier shouldn't rewrite
+types/database.ts
+package-lock.json
+PLAN.md
+CLAUDE.md
+test-fixtures/
+eval-results/
+supabase/
+selfhost/volumes/

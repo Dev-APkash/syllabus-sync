@@ -1,0 +1,7 @@
+# Files that run on Linux must keep Linux line endings (LF), even when edited on Windows.
+# A Windows line ending (CRLF) in a shell script makes it fail with confusing errors.
+*.sh text eol=lf
+selfhost/Caddyfile text eol=lf
+selfhost/docker-compose.yml text eol=lf
+Dockerfile text eol=lf
+*.sql text eol=lf

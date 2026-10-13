@@ -1,0 +1,66 @@
+# Publishes a release: pushing a version tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`)
+# builds the app image for amd64 and arm64, pushes it to GitHub Container Registry as
+# ghcr.io/<owner>/syllabus-sync:<version> (plus :<major>.<minor> and :latest), and opens a
+# draft GitHub release to review and publish. The same Dockerfile is tested on every push by
+# the "Self-hosted stack" workflow, so tag a commit whose run passed.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write # the draft release
+  packages: write # the image on ghcr.io
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90 # the arm64 build runs under emulation
+    steps:
+      - uses: actions/checkout@v4
+
+      # Lets an amd64 machine build the arm64 image (Raspberry Pi and other ARM boards).
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Image name (lower-cased by the action) and tags from the git tag: v0.1.0 → 0.1.0, 0.1, latest.
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/syllabus-sync
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+            type=sha,enable=${{ !startsWith(github.ref, 'refs/tags/') }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    needs: image
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # A draft: check the notes (copy the version's section from CHANGELOG.md), then publish.
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          prerelease: ${{ contains(github.ref, '-') }}
+          generate_release_notes: true

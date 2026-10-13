@@ -1,0 +1,78 @@
+{
+  "course": {
+    "code": "HIST 2100",
+    "name": "World History since 1500",
+    "instructor": "Dr. Mara Okonkwo",
+    "term": "Winter 2027"
+  },
+  "assessments": [
+    {
+      "title": "Map Quiz",
+      "kind": "quiz",
+      "due_date": "2027-01-15",
+      "due_time": "",
+      "weight_percent": 5,
+      "date_text": "Friday, January 15, 2027",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Primary Source Analysis",
+      "kind": "assignment",
+      "due_date": "2027-01-29",
+      "due_time": "23:59",
+      "weight_percent": 15,
+      "date_text": "Friday, January 29, 2027, 11:59 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "midterm",
+      "due_date": "2027-02-24",
+      "due_time": "10:00",
+      "weight_percent": 25,
+      "date_text": "Wednesday, February 24, 2027, 10:00 am",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Research Proposal",
+      "kind": "assignment",
+      "due_date": "2027-03-12",
+      "due_time": "23:59",
+      "weight_percent": 10,
+      "date_text": "Friday, March 12, 2027, 11:59 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Research Essay",
+      "kind": "assignment",
+      "due_date": "2027-04-02",
+      "due_time": "23:59",
+      "weight_percent": 25,
+      "date_text": "Friday, April 2, 2027, 11:59 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Final Exam",
+      "kind": "final_exam",
+      "due_date": "2027-04-20",
+      "due_time": "09:00",
+      "weight_percent": 20,
+      "date_text": "Tuesday, April 20, 2027, 9:00 am",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    }
+  ],
+  "grading_notes": [],
+  "warnings": []
+}

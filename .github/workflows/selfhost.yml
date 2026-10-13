@@ -1,0 +1,132 @@
+# Builds and starts the whole self-hosted stack (selfhost/) on a fresh GitHub machine, then runs
+# the smoke test, a real-browser test, backup → restore, and a password reset. Runs on every
+# change, because the browser test covers the app's pages too. Uses throwaway secrets made by
+# setup.sh for this run only, so it needs no repository secrets.
+name: Self-hosted stack
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: selfhost
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell scripts parse
+        run: for f in *.sh; do bash -n "$f"; done
+
+      - name: Create settings with throwaway secrets
+        # APP_IMAGE emptied: CI always tests this commit's source, never a published image.
+        run: |
+          printf 'http://localhost:8080\n\n' | bash setup.sh
+          sed -i 's/^APP_IMAGE=.*/APP_IMAGE=/' .env
+
+      - name: Compose file is valid
+        run: docker compose config --quiet
+
+      - name: Build and start
+        run: docker compose up -d --build
+
+      - name: Wait for the app
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/api/health; then exit 0; fi
+            sleep 5
+          done
+          echo "The app never became healthy."
+          exit 1
+
+      - name: Migrations applied
+        run: docker compose logs migrate | tee /dev/stderr | grep -q "Database is up to date."
+
+      - name: Smoke test
+        run: bash smoke-test.sh http://localhost:8080
+
+      # A real browser goes through sign-up, log in, settings and account deletion on the
+      # freshly built stack (e2e/account.spec.ts).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Browser test
+        working-directory: .
+        env:
+          E2E_BASE_URL: http://localhost:8080
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npx playwright test
+      - name: Browser test trace (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-trace
+          path: test-results/
+          retention-days: 7
+
+      # Proves backups work: a marker made before the backup must come back after a restore,
+      # and one made after the backup must be gone.
+      - name: Backup, change, restore
+        env:
+          BACKUP_DIR: ${{ runner.temp }}/backups
+        run: |
+          sql() { docker compose exec -T db psql -U postgres -v ON_ERROR_STOP=1 -tAc "$1"; }
+          sql "create table app_private.before_backup (x int)"
+          bash backup.sh
+          sql "create table app_private.after_backup (x int)"
+          bash restore.sh "$(ls -1t "$BACKUP_DIR"/syllabus-sync-*.tar.gz | head -n 1)" --yes
+          for i in $(seq 1 60); do curl -fsS http://localhost:8080/api/health && break; sleep 5; done
+          test "$(sql "select to_regclass('app_private.before_backup') is not null")" = "t"
+          test "$(sql "select to_regclass('app_private.after_backup') is null")" = "t"
+          echo "Restore brought back the backup's data."
+
+      # Restoring onto a "new machine": no .env and no data, only the backup archive.
+      - name: Restore with no .env and no data
+        env:
+          BACKUP_DIR: ${{ runner.temp }}/backups
+        run: |
+          docker compose down
+          mv .env "$RUNNER_TEMP/old.env"
+          sudo mv volumes "$RUNNER_TEMP/old-volumes"
+          bash restore.sh "$(ls -1t "$BACKUP_DIR"/syllabus-sync-*.tar.gz | head -n 1)" --yes
+          for i in $(seq 1 60); do curl -fsS http://localhost:8080/api/health && break; sleep 5; done
+          test "$(docker compose exec -T db psql -U postgres -tAc "select to_regclass('app_private.before_backup') is not null")" = "t"
+          echo "A restore onto an empty machine works."
+
+      - name: Smoke test after the restore
+        run: bash smoke-test.sh http://localhost:8080
+
+      # An account's password can be reset without email: the new one works, the old one doesn't.
+      - name: Password reset without email
+        run: |
+          setting() { grep "^$1=" .env | cut -d= -f2- | tr -d '\r'; }
+          anon="$(setting ANON_KEY)"; service="$(setting SERVICE_ROLE_KEY)"; base=http://localhost:8080
+          email="reset-$RANDOM@example.com"
+          login() {
+            curl -s -o /dev/null -w '%{http_code}' -X POST "$base/auth/v1/token?grant_type=password" \
+              -H "apikey: $anon" -H "Content-Type: application/json" -d "{\"email\":\"$email\",\"password\":\"$1\"}"
+          }
+          curl -fsS -o /dev/null -X POST "$base/auth/v1/signup" -H "apikey: $anon" -H "Content-Type: application/json" \
+            -d "{\"email\":\"$email\",\"password\":\"Old-password-1\"}"
+          NEW_PASSWORD='New "pass\word" 2' bash reset-password.sh "$email"
+          test "$(login 'New \"pass\\word\" 2')" = "200"
+          test "$(login 'Old-password-1')" != "200"
+          id="$(printf "select id from auth.users where email = :'e';\n" | docker compose exec -T db psql -U postgres -v e="$email" -tA)"
+          curl -fsS -o /dev/null -X DELETE "$base/auth/v1/admin/users/$id" -H "apikey: $service" -H "Authorization: Bearer $service"
+          echo "Password reset works."
+
+      - name: Status and logs (on failure)
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs --no-color --tail=80

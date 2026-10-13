@@ -1,0 +1,17 @@
+# Dependabot opens pull requests when a dependency has an update or a security fix.
+# Review each one (CI runs on it) before merging.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for small, low-risk updates instead of one per package.
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -1,0 +1,78 @@
+{
+  "course": {
+    "code": "BIOL 1500",
+    "name": "Cell Biology",
+    "instructor": "Dr. Priya Lindqvist",
+    "term": "Winter 2027"
+  },
+  "assessments": [
+    {
+      "title": "Lab Report 1",
+      "kind": "lab",
+      "due_date": "2027-02-04",
+      "due_time": "17:00",
+      "weight_percent": 10,
+      "date_text": "Thursday, February 4, 2027 at 5:00 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Lab Report 2",
+      "kind": "lab",
+      "due_date": "2027-03-11",
+      "due_time": "17:00",
+      "weight_percent": 10,
+      "date_text": "Thursday, March 11, 2027 at 5:00 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Midterm Test",
+      "kind": "midterm",
+      "due_date": "2027-02-22",
+      "due_time": "",
+      "weight_percent": 20,
+      "date_text": "Monday, February 22, 2027",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Group Presentation",
+      "kind": "presentation",
+      "due_date": "2027-03-31",
+      "due_time": "",
+      "weight_percent": 15,
+      "date_text": "Wednesday, March 31, 2027",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Participation",
+      "kind": "participation",
+      "due_date": "",
+      "due_time": "",
+      "weight_percent": 5,
+      "date_text": "Assessed throughout the term",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Final Exam",
+      "kind": "final_exam",
+      "due_date": "",
+      "due_time": "",
+      "weight_percent": 40,
+      "date_text": "During the April examination period",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": "Date set by the Registrar"
+    }
+  ],
+  "grading_notes": [],
+  "warnings": []
+}

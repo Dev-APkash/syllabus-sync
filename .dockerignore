@@ -1,0 +1,21 @@
+# Keep the Docker build small, fast and free of secrets.
+node_modules
+.next
+.git
+.github
+.claude
+.vercel
+coverage
+
+# Secrets never go into an image (in any folder)
+**/.env
+**/.env.*
+# Self-hosted data (database files, uploads, copies kept aside by restore.sh): never part of a build
+selfhost/volumes
+selfhost/volumes.*
+
+# Not needed to build the app
+test-fixtures
+eval-results
+infra
+*.log

@@ -1,0 +1,64 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+desktop.ini
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files: real keys live only on your computer, in Vercel and on the server
+.env*.local
+.env
+.env.*
+!.env.example
+
+# real syllabi and their answer keys (PLAN.md section 8)
+test-fixtures/private/
+
+# Cloudflare Tunnel credentials (the tunnel's password; stays on the server)
+infra/cloudflared/*.json
+
+# Self-hosted data: the database files and uploaded PDFs (selfhost/README.md)
+selfhost/volumes/
+# Personal words scripts/export-public.sh refuses to publish (never committed)
+scripts/private-patterns.local
+
+# Playwright output
+/test-results/
+/playwright-report/
+
+# Copies kept aside by selfhost/restore.sh (real data)
+selfhost/volumes.*/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

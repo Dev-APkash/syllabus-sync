@@ -1,0 +1,78 @@
+{
+  "course": {
+    "code": "PSYC 1010",
+    "name": "Introduction to Psychology",
+    "instructor": "Dr. Alex Rivera",
+    "term": "Winter 2027"
+  },
+  "assessments": [
+    {
+      "title": "Research Summary 1",
+      "kind": "assignment",
+      "due_date": "2027-01-22",
+      "due_time": "23:59",
+      "weight_percent": 10,
+      "date_text": "Friday of Week 3, by 11:59 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Quiz 1",
+      "kind": "quiz",
+      "due_date": "2027-02-03",
+      "due_time": "",
+      "weight_percent": 5,
+      "date_text": "Wednesday of Week 5, in lecture",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Midterm Exam",
+      "kind": "midterm",
+      "due_date": "2027-02-22",
+      "due_time": "",
+      "weight_percent": 25,
+      "date_text": "Monday of Week 7, in lecture",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Research Summary 2",
+      "kind": "assignment",
+      "due_date": "2027-03-12",
+      "due_time": "23:59",
+      "weight_percent": 10,
+      "date_text": "Friday of Week 9, by 11:59 pm",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Quiz 2",
+      "kind": "quiz",
+      "due_date": "2027-03-24",
+      "due_time": "",
+      "weight_percent": 5,
+      "date_text": "Wednesday of Week 11, in lecture",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    },
+    {
+      "title": "Final Exam",
+      "kind": "final_exam",
+      "due_date": "",
+      "due_time": "",
+      "weight_percent": 45,
+      "date_text": "Scheduled by the Registrar during the exam period",
+      "source_quote": "",
+      "confidence": "high",
+      "notes": ""
+    }
+  ],
+  "grading_notes": [],
+  "warnings": []
+}
