@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90 # the arm64 build runs under emulation
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Lets an amd64 machine build the arm64 image (Raspberry Pi and other ARM boards).
       - uses: docker/setup-qemu-action@v3
@@ -57,7 +57,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # A draft: check the notes (copy the version's section from CHANGELOG.md), then publish.
       - uses: softprops/action-gh-release@v2
         with:
