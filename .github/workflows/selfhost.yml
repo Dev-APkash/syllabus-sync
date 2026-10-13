@@ -20,7 +20,7 @@ jobs:
       run:
         working-directory: selfhost
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Shell scripts parse
         run: for f in *.sh; do bash -n "$f"; done
