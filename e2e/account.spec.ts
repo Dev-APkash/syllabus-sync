@@ -22,9 +22,12 @@ test("sign up, sign out, log in, use settings, delete the account", async ({ pag
   // (jumping there straight away races the sign-out), then log back in.
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/auth\/login$/);
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Log in" }).click();
+  // Next.js keeps recently visited pages (here the sign-up form) mounted but hidden, so only use
+  // the form that's actually on screen, as a person would.
+  const login = page.locator("form").filter({ visible: true });
+  await login.getByLabel("Email").fill(email);
+  await login.getByLabel("Password", { exact: true }).fill(password);
+  await login.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
 
   // Settings: the feed link uses this install's address (read at runtime), and resetting it
