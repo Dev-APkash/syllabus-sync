@@ -54,7 +54,7 @@ jobs:
 
       # A real browser goes through sign-up, log in, settings and account deletion on the
       # freshly built stack (e2e/account.spec.ts).
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
