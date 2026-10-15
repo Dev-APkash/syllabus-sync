@@ -112,7 +112,7 @@ database that a newer one has already changed.
 2. Get the same release that made the backup, or a newer one, and copy the archive to the machine:
 
    ```bash
-   git clone https://github.com/<owner>/syllabus-sync.git
+   git clone https://github.com/Dev-APkash/syllabus-sync.git
    cd syllabus-sync && git checkout <version> && cd selfhost
    ```
 

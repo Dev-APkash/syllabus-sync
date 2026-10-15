@@ -28,8 +28,8 @@ and optional read-only Canvas linking. These guides are for people running their
 On a Linux machine with Docker, after choosing how you'll reach it ([install.md](install.md)):
 
 ```bash
-git clone https://github.com/<owner>/syllabus-sync.git
-cd syllabus-sync && git checkout <version> && cd selfhost
+git clone https://github.com/Dev-APkash/syllabus-sync.git
+cd syllabus-sync && git checkout v0.1.0 && cd selfhost   # or the newest release tag
 bash setup.sh                     # asks for the site address and your Anthropic key, writes .env
 docker compose up -d
 ```

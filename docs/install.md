@@ -166,7 +166,7 @@ All commands run on the server.
 1. **Get the code.** Download the latest release. With git:
 
    ```bash
-   git clone https://github.com/<owner>/syllabus-sync.git
+   git clone https://github.com/Dev-APkash/syllabus-sync.git
    cd syllabus-sync
    git checkout <version>        # the newest release tag, for example v0.1.0
    cd selfhost
