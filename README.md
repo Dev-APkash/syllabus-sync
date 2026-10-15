@@ -4,7 +4,7 @@
 exam and grade weight; you check them beside the original; confirmed deadlines appear in your calendar app.
 Self-hosted: it runs on your own server, for you and the people you invite.
 
-![The course list: every course with its next deadline and how soon it's due, and an Exams panel with each course's midterms and finals](docs/images/course-list.png)
+![The course list: "This week" with syllabus deadlines and Canvas-only work together, every course with its next deadline and how soon it's due, and an Exams panel with each course's midterms and finals](docs/images/this-week.png)
 
 ## What it does
 
@@ -37,7 +37,9 @@ Many schools run their courses on [Canvas](https://www.instructure.com/canvas). 
 - **In the grade calculator:** "Use Canvas marks" fills in every mark Canvas already has, so "what do I need on the
   final?" uses your real scores. They're only saved if you choose to save them.
 
-![This week: syllabus deadlines and Canvas-only work together, each with its course, time and weight](docs/images/this-week.png)
+The screenshot at the top shows this: the "Canvas" items in "This week" come straight from Canvas.
+
+![The course list on a quiet week: every course with its next deadline and how soon it's due, and an Exams panel with each course's midterms and finals](docs/images/course-list.png)
 
 **Linking it:** in Canvas, go to **Account → Settings → New access token**, name it "Syllabus Sync", set it to expire
 at the end of term, and paste it into Settings along with your school's Canvas address. Syllabus Sync checks the
