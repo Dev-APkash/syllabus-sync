@@ -6,7 +6,9 @@ All notable changes to the self-hosted edition. The format follows
 
 ## [Unreleased]
 
-The first public version (v0.1.0) is being prepared; see RELEASE_PLAN.md.
+## [0.1.0] - 2026-10-15
+
+The first public version.
 
 ### Added
 

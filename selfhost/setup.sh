@@ -106,4 +106,4 @@ mkdir -p volumes/db/data volumes/storage
 
 echo
 echo "Done. Created .env (readable only by you) and the data folders in ./volumes."
-echo "Next: docker compose up -d --build    (the first build takes several minutes)"
+echo "Next: docker compose pull && docker compose up -d    (uses the published app image; see docs/install.md)"
