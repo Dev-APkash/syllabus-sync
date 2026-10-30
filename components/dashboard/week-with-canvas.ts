@@ -3,7 +3,7 @@ import { mergeWithCanvas, timeInZone, toCanvasWeekItems } from "@/lib/canvas/pla
 import { parseList, plannerItemSchema } from "@/lib/canvas/schema";
 import { addDaysToDate } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
-import { ThisWeek, type CourseInfo, type WeekItem } from "./this-week";
+import type { CourseInfo, WeekItem } from "./this-week";
 
 type Props = {
   userId: string;
@@ -21,7 +21,7 @@ const byDate = (a: WeekItem, b: WeekItem) => {
 };
 
 /** Adds Canvas's view to This week: statuses on matching deadlines, plus Canvas-only work. */
-async function withCanvas({ userId, today, timeZone, items, canvasCourses }: Props) {
+export async function weekWithCanvas({ userId, today, timeZone, items, canvasCourses }: Props) {
   if (!Object.keys(canvasCourses).length) return { items };
   const conn = await getCanvasConnection(await createClient(), userId);
   if ("error" in conn) return { items };
@@ -58,9 +58,4 @@ async function withCanvas({ userId, today, timeZone, items, canvasCourses }: Pro
     })),
   ];
   return { items: merged.sort(byDate), note: "Next 7 days, all courses and Canvas" };
-}
-
-export async function ThisWeekWithCanvas(props: Props) {
-  const { items, note } = await withCanvas(props);
-  return <ThisWeek items={items} today={props.today} note={note} />;
 }

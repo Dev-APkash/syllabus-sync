@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CourseDot } from "@/components/courses/course-dot";
 import { KIND_LABELS, type AssessmentKind } from "@/lib/constants";
 import { daysBetween, formatShortDate, relativeDays } from "@/lib/dates";
+import { cn } from "@/lib/utils";
 import type { CourseInfo } from "./this-week";
 
 export type ExamItem = {
@@ -10,59 +11,73 @@ export type ExamItem = {
   kind: string;
   due_date: string | null;
   weight_percent: number | null;
+  course: CourseInfo;
 };
-export type ExamGroup = { course: CourseInfo; exams: ExamItem[] };
 
-/** The dashboard's side panel: every course's upcoming midterms, tests and final in one place. */
-export function ExamPanel({ groups, today }: { groups: ExamGroup[]; today: string }) {
+/** The dashboard's side panel: every course's upcoming midterms, tests and finals, soonest first. */
+export function ExamPanel({ exams, today }: { exams: ExamItem[]; today: string }) {
   return (
     <section aria-labelledby="exams" className="rounded-lg border bg-card">
       <div className="flex items-baseline justify-between gap-3 border-b px-4 py-2.5">
         <h2 id="exams" className="text-sm font-medium">
-          Exams
+          Upcoming exams
         </h2>
         <span className="text-xs text-muted-foreground">Midterms, tests, finals</span>
       </div>
-      {groups.length ? (
-        <div className="divide-y">
-          {groups.map(({ course, exams }) => (
-            <div key={course.id} className="px-4 py-3">
-              <Link
-                href={`/courses/${course.id}`}
-                className="flex w-fit items-center gap-2 text-sm font-medium tabular-nums underline-offset-4 hover:underline"
-              >
-                <CourseDot color={course.color} />
-                {course.code ?? course.name}
-              </Link>
-              <ul className="mt-2 flex flex-col gap-2">
-                {exams.map((exam) => (
-                  <li key={exam.id} className="text-sm">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="min-w-0 truncate" title={exam.title}>
-                        {exam.title}
-                      </span>
-                      <span className="shrink-0 tabular-nums">
-                        {exam.due_date ? formatShortDate(exam.due_date) : "TBA"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-3 text-xs text-muted-foreground">
-                      <span className="tabular-nums">
-                        {KIND_LABELS[exam.kind as AssessmentKind] ?? "Exam"}
-                        {exam.weight_percent !== null && ` · ${exam.weight_percent}%`}
-                      </span>
-                      {exam.due_date && (
-                        <span className="tabular-nums">{relativeDays(daysBetween(today, exam.due_date))}</span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+      {exams.length ? (
+        <ul className="divide-y">
+          {exams.map((exam) => (
+            <ExamRow key={exam.id} exam={exam} today={today} />
           ))}
-        </div>
+        </ul>
       ) : (
         <p className="px-4 py-3 text-sm text-muted-foreground">No upcoming midterms, tests or finals.</p>
       )}
     </section>
+  );
+}
+
+function ExamRow({ exam, today }: { exam: ExamItem; today: string }) {
+  const days = exam.due_date ? daysBetween(today, exam.due_date) : null;
+  const soon = days !== null && days <= 7;
+  return (
+    <li className="relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+      <div
+        className={cn(
+          "flex w-12 shrink-0 flex-col items-center rounded-md border py-1 text-center leading-tight tabular-nums",
+          soon && "border-warning/60 bg-warning/10",
+        )}
+      >
+        {exam.due_date ? (
+          <>
+            <span className="text-[0.65rem] font-medium uppercase text-muted-foreground">
+              {formatShortDate(exam.due_date).split(", ")[1].split(" ")[0]}
+            </span>
+            <span className="text-lg font-semibold">{Number(exam.due_date.slice(8))}</span>
+          </>
+        ) : (
+          <span className="py-1.5 text-xs font-medium text-muted-foreground">TBA</span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1 text-sm">
+        <Link
+          href={`/courses/${exam.course.id}`}
+          className="block truncate font-medium after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring"
+          title={exam.title}
+        >
+          {exam.title}
+        </Link>
+        <p className="flex items-center gap-1.5 truncate text-xs tabular-nums text-muted-foreground">
+          <CourseDot color={exam.course.color} className="h-2 w-2" />
+          {exam.course.code ?? exam.course.name}
+          {" · "}
+          {KIND_LABELS[exam.kind as AssessmentKind] ?? "Exam"}
+          {exam.weight_percent !== null && ` · ${exam.weight_percent}%`}
+        </p>
+        <p className={cn("mt-0.5 text-xs tabular-nums", soon ? "font-medium" : "text-muted-foreground")}>
+          {days !== null ? relativeDays(days) : "Date not announced yet"}
+        </p>
+      </div>
+    </li>
   );
 }

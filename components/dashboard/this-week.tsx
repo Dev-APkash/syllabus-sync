@@ -25,7 +25,18 @@ const STATUS: Partial<Record<CanvasStatus, { text: string; className: string }>>
   missing: { text: "Missing", className: "text-destructive" },
 };
 
-/** "This week": every course's deadlines for the next 7 days, in one list. */
+/** Items (already sorted by date) split into one group per day. */
+function groupByDay(items: WeekItem[]): { date: string; items: WeekItem[] }[] {
+  const days: { date: string; items: WeekItem[] }[] = [];
+  for (const item of items) {
+    const last = days.at(-1);
+    if (last?.date === item.due_date) last.items.push(item);
+    else days.push({ date: item.due_date!, items: [item] });
+  }
+  return days;
+}
+
+/** "This week": every course's deadlines for the next 7 days, one block per day. */
 export function ThisWeek({ items, today, note }: { items: WeekItem[]; today: string; note?: string }) {
   return (
     <section aria-labelledby="this-week">
@@ -36,11 +47,11 @@ export function ThisWeek({ items, today, note }: { items: WeekItem[]; today: str
         <span className="text-xs text-muted-foreground">{note ?? "Next 7 days, all courses"}</span>
       </div>
       {items.length ? (
-        <ul className="divide-y rounded-lg border bg-card">
-          {items.map((item) => (
-            <WeekRow key={item.id} item={item} today={today} />
+        <div className="overflow-hidden rounded-lg border bg-card">
+          {groupByDay(items).map((day) => (
+            <DayGroup key={day.date} date={day.date} items={day.items} today={today} />
           ))}
-        </ul>
+        </div>
       ) : (
         <p className="rounded-lg border border-dashed bg-card px-4 py-3 text-sm text-muted-foreground">
           Nothing due in the next 7 days.
@@ -50,51 +61,81 @@ export function ThisWeek({ items, today, note }: { items: WeekItem[]; today: str
   );
 }
 
-function WeekRow({ item, today }: { item: WeekItem; today: string }) {
-  const days = daysBetween(today, item.due_date!);
+function DayGroup({ date, items, today }: { date: string; items: WeekItem[]; today: string }) {
+  const days = daysBetween(today, date);
+  const [weekday, monthDay] = formatShortDate(date).split(", "); // "Tue", "Oct 20"
+  const label = days === 0 ? "Today" : days === 1 ? "Tomorrow" : weekday;
+  return (
+    <div className="border-b last:border-b-0">
+      <h3
+        className={cn(
+          "flex items-baseline justify-between gap-3 bg-muted/40 px-4 py-1.5 text-xs",
+          days === 0 && "bg-primary/10",
+        )}
+      >
+        <span>
+          <span className="font-semibold uppercase tracking-wide">{label}</span>
+          <span className="ml-2 tabular-nums text-muted-foreground">
+            {days <= 1 ? `${weekday}, ${monthDay}` : monthDay}
+          </span>
+        </span>
+        <span className="tabular-nums text-muted-foreground">
+          {items.length} {items.length === 1 ? "item" : "items"}
+        </span>
+      </h3>
+      <ul className="divide-y">
+        {items.map((item) => (
+          <WeekRow key={item.id} item={item} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function WeekRow({ item }: { item: WeekItem }) {
   const status = item.canvasStatus ? STATUS[item.canvasStatus] : undefined;
   const courseLabel = item.course.code ?? item.course.name;
+  const handedIn = item.canvasStatus === "submitted" || item.canvasStatus === "graded";
   const linkClass =
-    "min-w-0 flex-1 truncate after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring";
-  const title = (
-    <>
-      {item.title}
-      <span className="text-muted-foreground sm:hidden"> · {courseLabel}</span>
-    </>
-  );
+    "block truncate after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring";
 
   return (
-    <li className="relative flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50">
-      <span className={cn("w-24 shrink-0 text-sm tabular-nums", days <= 1 ? "font-medium" : "text-muted-foreground")}>
-        {days === 0 ? "Today" : days === 1 ? "Tomorrow" : formatShortDate(item.due_date!)}
-      </span>
-      <CourseDot color={item.course.color} />
-      <span className="hidden w-20 shrink-0 truncate text-sm tabular-nums text-muted-foreground sm:block">
-        {courseLabel}
-      </span>
-      {item.fromCanvas ? (
-        item.canvasUrl ? (
-          <a href={item.canvasUrl} target="_blank" rel="noreferrer" className={linkClass}>
-            {title}
-          </a>
-        ) : (
-          <span className="min-w-0 flex-1 truncate">{title}</span>
-        )
-      ) : (
-        <Link href={`/courses/${item.course.id}`} className={linkClass}>
-          {title}
-        </Link>
+    <li
+      className={cn(
+        "relative flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50",
+        handedIn && "text-muted-foreground",
       )}
-      {item.fromCanvas && <span className="shrink-0 rounded border px-1.5 text-xs text-muted-foreground">Canvas</span>}
+    >
+      <CourseDot color={item.course.color} />
+      <div className="min-w-0 flex-1">
+        {item.fromCanvas ? (
+          item.canvasUrl ? (
+            <a href={item.canvasUrl} target="_blank" rel="noreferrer" className={linkClass}>
+              {item.title}
+            </a>
+          ) : (
+            <span className="block truncate">{item.title}</span>
+          )
+        ) : (
+          <Link href={`/courses/${item.course.id}`} className={linkClass}>
+            {item.title}
+          </Link>
+        )}
+        <p className="truncate text-xs tabular-nums text-muted-foreground">
+          {courseLabel}
+          {item.due_time && ` · ${formatTimeOnly(item.due_time)}`}
+          {item.fromCanvas && " · from Canvas"}
+        </p>
+      </div>
       {status && <span className={cn("shrink-0 text-xs font-medium", status.className)}>{status.text}</span>}
-      {item.due_time && (
-        <span className="hidden shrink-0 text-sm tabular-nums text-muted-foreground sm:block">
-          {formatTimeOnly(item.due_time)}
+      {item.weight_percent !== null && (
+        <span
+          className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium tabular-nums"
+          title="Share of the final grade"
+        >
+          {item.weight_percent}%
         </span>
       )}
-      <span className="w-10 shrink-0 text-right text-sm tabular-nums">
-        {item.weight_percent !== null ? `${item.weight_percent}%` : ""}
-      </span>
     </li>
   );
 }

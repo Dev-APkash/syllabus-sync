@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button";
 import { daysBetween, formatShortDate, relativeDays } from "@/lib/dates";
 import { isTermOver } from "@/lib/deadlines";
 import { cn } from "@/lib/utils";
-import { RemoveUploadButton } from "./remove-upload-button";
-import { RetryButton } from "./retry-button";
-import { StatusBadge } from "./status-badge";
 
 export type DashboardCourse = {
   id: string;
@@ -30,12 +27,9 @@ type Row = { course: DashboardCourse; syllabus: DashboardCourse["syllabi"][numbe
 
 const columns = "md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_6.5rem_1.25rem]";
 
-/** Rows that need the student come first, then the soonest deadline. */
+/** Soonest deadline first. */
 function sortRows(rows: Row[]): Row[] {
-  const rank = (r: Row) => (r.syllabus.status === "needs_review" ? 0 : r.syllabus.status === "confirmed" ? 2 : 1);
-  return [...rows].sort(
-    (a, b) => rank(a) - rank(b) || (a.next?.due_date ?? "9999").localeCompare(b.next?.due_date ?? "9999"),
-  );
+  return [...rows].sort((a, b) => (a.next?.due_date ?? "9999").localeCompare(b.next?.due_date ?? "9999"));
 }
 
 /** Groups rows by term ("FALL 2026" and "Fall 2026" are the same term), keeping their order. */
@@ -50,7 +44,10 @@ function groupByTerm(rows: Row[]): { label: string; rows: Row[] }[] {
   return [...groups.values()];
 }
 
-/** The dashboard's course list: one row per course, sorted by what's due next. */
+/**
+ * The dashboard's course list: one row per confirmed course, sorted by what's due next.
+ * Uploads that aren't confirmed yet are shown in NeedsAttention instead.
+ */
 export function CourseList({
   courses,
   nextDeadlines,
@@ -64,16 +61,14 @@ export function CourseList({
   today: string;
 }) {
   const rows = courses.flatMap((course) =>
-    course.syllabi.map((syllabus) => ({
-      course,
-      syllabus,
-      next: syllabus.status === "confirmed" ? nextDeadlines[course.id] : undefined,
-    })),
+    course.syllabi
+      .filter((syllabus) => syllabus.status === "confirmed")
+      .map((syllabus) => ({ course, syllabus, next: nextDeadlines[course.id] })),
   );
+  if (!rows.length) return null;
   const groups = groupByTerm(sortRows(rows));
-  // A term is over when all its courses are confirmed and their last deadline is two weeks past.
+  // A term is over when its courses' last deadline is two weeks past.
   const over = (group: { rows: Row[] }) =>
-    group.rows.every((r) => r.syllabus.status === "confirmed") &&
     isTermOver(
       group.rows.map((r) => lastDueDates[r.course.id] ?? null),
       today,
@@ -106,7 +101,9 @@ export function CourseList({
 function TermGroup({ group, today }: { group: { label: string; rows: Row[] }; today: string }) {
   return (
     <section>
-      <h2 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{group.label}</h2>
+      <h2 className="mb-2 text-sm font-medium">
+        Courses <span className="font-normal text-muted-foreground">· {group.label}</span>
+      </h2>
       <div className="overflow-hidden rounded-lg border bg-card">
         <div
           className={cn("hidden gap-4 border-b px-5 py-2 text-xs font-medium text-muted-foreground md:grid", columns)}
@@ -126,108 +123,53 @@ function TermGroup({ group, today }: { group: { label: string; rows: Row[] }; to
   );
 }
 
-function CourseRow({ row: { course, syllabus, next }, today }: { row: Row; today: string }) {
-  const href =
-    syllabus.status === "confirmed"
-      ? `/courses/${course.id}`
-      : syllabus.status === "needs_review"
-        ? `/syllabi/${syllabus.id}/review`
-        : null;
+function CourseRow({ row: { course, next }, today }: { row: Row; today: string }) {
   const days = next ? daysBetween(today, next.due_date) : null;
-  const name = (
-    <span className="flex items-start gap-2.5">
-      <CourseDot color={course.color} className="mt-1.5" />
-      <span className="min-w-0">
-        {course.code ? (
-          <>
-            <span className="block truncate font-medium tabular-nums">{course.code}</span>
-            <span className="block truncate text-sm text-muted-foreground">{course.name}</span>
-          </>
-        ) : (
-          <span className="block truncate font-medium">{course.name}</span>
-        )}
-      </span>
-    </span>
-  );
 
   return (
     <li
       className={cn(
-        "relative grid gap-x-4 gap-y-2 px-5 py-3.5 md:items-center",
+        "relative grid gap-x-4 gap-y-2 px-5 py-3.5 transition-colors hover:bg-muted/50 md:items-center",
         columns,
-        href && "transition-colors hover:bg-muted/50",
       )}
     >
       <div className="min-w-0">
-        {href ? (
-          // The link's ::after covers the whole row, so clicking anywhere on it opens the course.
-          <Link
-            href={href}
-            className="block after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring"
-          >
-            {name}
-          </Link>
-        ) : (
-          name
-        )}
+        {/* The link's ::after covers the whole row, so clicking anywhere on it opens the course. */}
+        <Link
+          href={`/courses/${course.id}`}
+          className="flex items-start gap-2.5 after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring"
+        >
+          <CourseDot color={course.color} className="mt-1.5" />
+          <span className="min-w-0">
+            {course.code ? (
+              <>
+                <span className="block truncate font-medium tabular-nums">{course.code}</span>
+                <span className="block truncate text-sm text-muted-foreground">{course.name}</span>
+              </>
+            ) : (
+              <span className="block truncate font-medium">{course.name}</span>
+            )}
+          </span>
+        </Link>
       </div>
 
-      {syllabus.status === "confirmed" ? (
-        next && days !== null ? (
-          <>
-            <div className="min-w-0">
-              <p className="truncate">{next.title}</p>
-              <p className="text-sm tabular-nums text-muted-foreground">{formatShortDate(next.due_date)}</p>
-            </div>
-            <p
-              className={cn("text-sm tabular-nums md:text-right", days <= 7 ? "font-medium" : "text-muted-foreground")}
-            >
-              {relativeDays(days)}
-            </p>
-          </>
-        ) : (
-          <p className="text-sm text-muted-foreground md:col-span-2">No upcoming deadlines</p>
-        )
-      ) : (
-        // Above the row-wide link, so these buttons stay clickable on their own.
-        <div className="relative z-10 flex min-w-0 flex-col gap-2 md:col-span-2">
-          <StatusBadge status={syllabus.status} />
-          {syllabus.status === "failed" && syllabus.error_message && (
-            <p className="line-clamp-2 text-sm text-destructive">{syllabus.error_message}</p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <SyllabusAction syllabusId={syllabus.id} status={syllabus.status} />
+      {next && days !== null ? (
+        <>
+          <div className="min-w-0">
+            <p className="truncate">{next.title}</p>
+            <p className="text-sm tabular-nums text-muted-foreground">{formatShortDate(next.due_date)}</p>
           </div>
-        </div>
+          <p className={cn("text-sm tabular-nums md:text-right", days <= 7 ? "font-medium" : "text-muted-foreground")}>
+            {relativeDays(days)}
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-muted-foreground md:col-span-2">No upcoming deadlines</p>
       )}
 
-      {href && <ChevronRight className="hidden h-5 w-5 text-muted-foreground md:block" aria-hidden="true" />}
+      <ChevronRight className="hidden h-5 w-5 text-muted-foreground md:block" aria-hidden="true" />
     </li>
   );
-}
-
-function SyllabusAction({ syllabusId, status }: { syllabusId: string; status: string }) {
-  switch (status) {
-    case "needs_review":
-      return (
-        <Button asChild size="sm">
-          <Link href={`/syllabi/${syllabusId}/review`}>Review</Link>
-        </Button>
-      );
-    case "failed":
-    case "uploaded":
-      return (
-        <>
-          <RetryButton syllabusId={syllabusId} label={status === "uploaded" ? "Read syllabus" : "Try again"} />
-          <RemoveUploadButton syllabusId={syllabusId} />
-        </>
-      );
-    case "extracting":
-      // Normally finishes within a few minutes; this rescues one stuck after a timeout.
-      return <RetryButton syllabusId={syllabusId} label="Stuck? Retry" />;
-    default:
-      return null;
-  }
 }
 
 export function EmptyCourses() {

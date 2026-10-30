@@ -3,10 +3,12 @@ import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Button } from "@/components/ui/button";
-import { CourseList, EmptyCourses, type NextDeadline } from "@/components/dashboard/course-list";
-import { ExamPanel } from "@/components/dashboard/exam-panel";
-import { ThisWeek, type CourseInfo } from "@/components/dashboard/this-week";
-import { ThisWeekWithCanvas } from "@/components/dashboard/this-week-canvas";
+import { AtAGlance } from "@/components/dashboard/at-a-glance";
+import { CourseList, EmptyCourses, type DashboardCourse, type NextDeadline } from "@/components/dashboard/course-list";
+import { ExamPanel, type ExamItem } from "@/components/dashboard/exam-panel";
+import { NeedsAttention, type PendingUpload } from "@/components/dashboard/needs-attention";
+import { ThisWeek, type CourseInfo, type WeekItem } from "@/components/dashboard/this-week";
+import { weekWithCanvas } from "@/components/dashboard/week-with-canvas";
 import { TimezoneSync } from "@/components/dashboard/timezone-sync";
 import { requireUser } from "@/lib/auth";
 import { EXAM_KINDS } from "@/lib/constants";
@@ -23,7 +25,7 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title="Your courses"
-        description="Each syllabus you upload becomes a course. Review new ones, then they appear in your calendar."
+        description="What's due, what needs you, and how each course is going."
         actions={
           <Button asChild>
             <Link href="/upload">Upload a syllabus</Link>
@@ -83,35 +85,65 @@ async function Dashboard() {
     const course = byId.get(item.course_id);
     return course ? [{ ...item, course }] : [];
   });
-  // Courses with the soonest exam first.
-  const examGroups = upcomingExamsByCourse(items, today, EXAM_KINDS, [...byId.keys()])
-    .sort((a, b) => ((a.exams[0].due_date ?? "~") < (b.exams[0].due_date ?? "~") ? -1 : 1))
-    .flatMap((group) => {
-      const course = byId.get(group.courseId);
-      return course ? [{ course, exams: group.exams }] : [];
-    });
+  // Every course's upcoming exams in one list, soonest first; ones with no date yet ("TBA") last.
+  const exams: ExamItem[] = upcomingExamsByCourse(items, today, EXAM_KINDS, [...byId.keys()])
+    .flatMap((group) => group.exams.map((exam) => ({ ...exam, course: byId.get(group.courseId)! })))
+    .sort((a, b) => ((a.due_date ?? "~") < (b.due_date ?? "~") ? -1 : 1));
+  const pending: PendingUpload[] = courses.flatMap((course) =>
+    course.syllabi.filter((s) => s.status !== "confirmed").map((syllabus) => ({ course, syllabus })),
+  );
 
+  const body = { courses, nextDeadlines, lastDueDates, exams, pending, today };
   return (
     <>
       <TimezoneSync savedTimeZone={timeZone} />
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_19rem]">
+      {/* Syllabus deadlines show at once; Canvas statuses and Canvas-only work join when Canvas answers. */}
+      <Suspense fallback={<DashboardBody {...body} week={thisWeek} />}>
+        <DashboardWithCanvas {...body} canvas={{ userId: user.id, today, timeZone, items: thisWeek, canvasCourses }} />
+      </Suspense>
+    </>
+  );
+}
+
+type BodyProps = {
+  courses: DashboardCourse[];
+  nextDeadlines: Record<string, NextDeadline>;
+  lastDueDates: Record<string, string | null>;
+  exams: ExamItem[];
+  pending: PendingUpload[];
+  today: string;
+  week: WeekItem[];
+  weekNote?: string;
+};
+
+async function DashboardWithCanvas({
+  canvas,
+  ...props
+}: Omit<BodyProps, "week"> & { canvas: Parameters<typeof weekWithCanvas>[0] }) {
+  const { items, note } = await weekWithCanvas(canvas);
+  return <DashboardBody {...props} week={items} weekNote={note} />;
+}
+
+/** Top to bottom: the numbers that matter, anything waiting on the student, then the week and the courses. */
+function DashboardBody({ courses, nextDeadlines, lastDueDates, exams, pending, today, week, weekNote }: BodyProps) {
+  return (
+    <div className="flex flex-col gap-8">
+      <AtAGlance
+        week={week}
+        exams={exams}
+        pendingUploads={pending.filter((p) => p.syllabus.status !== "extracting").length}
+        today={today}
+      />
+      <NeedsAttention uploads={pending} />
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <div className="flex min-w-0 flex-col gap-8">
-          {/* Syllabus deadlines show at once; Canvas statuses and Canvas-only work join when Canvas answers. */}
-          <Suspense fallback={<ThisWeek items={thisWeek} today={today} />}>
-            <ThisWeekWithCanvas
-              userId={user.id}
-              today={today}
-              timeZone={timeZone}
-              items={thisWeek}
-              canvasCourses={canvasCourses}
-            />
-          </Suspense>
+          <ThisWeek items={week} today={today} note={weekNote} />
           <CourseList courses={courses} nextDeadlines={nextDeadlines} lastDueDates={lastDueDates} today={today} />
         </div>
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <ExamPanel groups={examGroups} today={today} />
+          <ExamPanel exams={exams} today={today} />
         </aside>
       </div>
-    </>
+    </div>
   );
 }

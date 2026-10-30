@@ -6,6 +6,12 @@ All notable changes to the self-hosted edition. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Redesigned course list page: a row of at-a-glance numbers (due today, next 7 days, next exam, what needs you),
+  a "Needs your attention" section that explains each upload still being read, waiting for review or failed,
+  "This week" grouped by day, and upcoming exams in one list, soonest first.
+
 ## [0.1.0] - 2026-10-15
 
 The first public version.
